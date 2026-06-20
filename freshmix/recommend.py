@@ -6,7 +6,7 @@ actively steers this away from the real pain points.
 from __future__ import annotations
 
 from config import CONFIG
-from . import agent, catalog as cat, context, rag
+from . import agent, catalog as cat, context, music, rag
 from .schemas import DiscoveryRequest, Queue, QueueItem, Track
 
 
@@ -56,8 +56,16 @@ def generate(req: DiscoveryRequest, catalog: list[Track] | None = None) -> Queue
     if hit:
         mitigations.append(f"e.g. avoiding: \"{hit[0]['example_text'][:70]}…\"")
 
-    # 1. candidates by mood/activity (+ enforce mood when reviews demand it)
-    cands = cat.candidates(catalog, req.moods, req.activities)
+    # 1. candidates — real songs (iTunes) with mock fallback
+    if music.source() == "itunes":
+        cands = music.live_candidates(req.moods, req.activities, limit=48)
+        if len(cands) < n:
+            cands = cat.candidates(catalog, req.moods, req.activities)
+            note = "Live music source unavailable — using offline catalog."
+        else:
+            note = "Real songs via Apple Music."
+    else:
+        cands = cat.candidates(catalog, req.moods, req.activities)
     if mood_required:
         mm = [t for t in cands if set(req.moods) & set(t.moods)]
         cands = mm or cands

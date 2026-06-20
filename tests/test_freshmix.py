@@ -12,6 +12,9 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import os  # noqa: E402
+os.environ["MUSIC_SOURCE"] = "mock"      # deterministic, offline (no network in CI)
+
 from config import CONFIG  # noqa: E402
 from freshmix import generate_queue, refresh_track  # noqa: E402
 from freshmix.agent import parse_intent, rationale  # noqa: E402
@@ -265,6 +268,25 @@ def test_edge_stale_corpus_graceful():
         rag._CORPUS = orig
         rag.load_corpus.cache_clear()
     print("  [ok] edge: missing/stale corpus degrades gracefully")
+
+
+def test_music_live_mapping():
+    from freshmix import music
+    fake = [{"trackId": 1, "trackName": "Real Song", "artistName": "Real Artist",
+             "primaryGenreName": "Indie", "releaseDate": "2026-01-01",
+             "artworkUrl100": "https://x/100x100bb.jpg",
+             "previewUrl": "https://x/p.m4a", "trackViewUrl": "https://music.apple.com/x"}]
+    orig = music._search
+    try:
+        music._search = lambda term, limit=12, country="us": tuple(fake)
+        tracks = music.live_candidates(["Focus"], ["Work"], limit=5)
+        t = tracks[0]
+        assert t.name == "Real Song" and t.artist == "Real Artist"
+        assert t.artwork_url and t.preview_url and t.url and t.new_artist
+        assert "300x300" in t.artwork_url            # upscaled art
+    finally:
+        music._search = orig
+    print("  [ok] live music mapping -> Track with real art/preview/link")
 
 
 def _run():

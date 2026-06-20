@@ -46,6 +46,9 @@ st.markdown("""
   border:1px solid #2e2e2e;display:flex;align-items:center;justify-content:center;
   font-size:22px;color:#777}
 .fm-art.fresh{background:rgba(29,185,84,.15);border-color:rgba(29,185,84,.4);color:#1DB954}
+img.fm-art{object-fit:cover}
+.fm-card a{color:#fff;text-decoration:none}
+.fm-card a:hover{text-decoration:underline}
 .fm-name{font-size:17px;font-weight:600;color:#fff}
 .fm-artist{font-size:13px;color:#b3b3b3;margin-top:1px}
 .fm-why{font-size:13px;color:#1DB954;background:rgba(29,185,84,.10);
@@ -195,15 +198,20 @@ elif q:
         t = it.track
         saved = t.id in user.saved
         tagcls = "fm-fresh" if it.tag == "fresh" else "fm-fam"
-        artcls = "fm-art fresh" if it.tag == "fresh" else "fm-art"
+        fresh = " fresh" if it.tag == "fresh" else ""
+        art = (f'<img src="{t.artwork_url}" class="fm-art{fresh}">' if t.artwork_url
+               else f'<div class="fm-art{fresh}">♪</div>')
+        name = f'<a href="{t.url}" target="_blank">{t.name}</a>' if t.url else t.name
         saved_html = '<span class="fm-saved">✓ saved</span>' if saved else ""
         st.markdown(
-            f'<div class="fm-card"><div class="{artcls}">♪</div><div>'
-            f'<div class="fm-name">{t.name}'
+            f'<div class="fm-card">{art}<div>'
+            f'<div class="fm-name">{name}'
             f'<span class="fm-tag {tagcls}">{it.tag}</span>{saved_html}</div>'
             f'<div class="fm-artist">{t.artist} · {t.genre} · {t.year}</div>'
             f'<div class="fm-why">Why? {it.why}</div></div></div>',
             unsafe_allow_html=True)
+        if t.preview_url:
+            st.audio(t.preview_url, format="audio/mp4")
         b1, b2, b3 = st.columns(3)
         if b1.button("Save", key=f"s{i}_{t.id}", use_container_width=True):
             user.apply("save", t.id); st.rerun()

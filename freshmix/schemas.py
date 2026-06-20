@@ -20,6 +20,9 @@ class Track(BaseModel):
     energy: float = 0.5              # 0..1
     valence: float = 0.5             # 0..1 (musical positivity)
     tempo: int = 110                 # BPM
+    artwork_url: str | None = None   # album art (real source)
+    preview_url: str | None = None   # 30s preview (real source)
+    url: str | None = None           # link to the track
 
 
 class DiscoveryRequest(BaseModel):
