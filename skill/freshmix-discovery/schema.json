@@ -1,0 +1,30 @@
+{
+  "input": {
+    "type": "object",
+    "properties": {
+      "free_text": {"type": "string"},
+      "moods": {"type": "array", "items": {"type": "string",
+        "enum": ["Focus", "Gym", "Chill", "Travel"]}},
+      "activities": {"type": "array", "items": {"type": "string",
+        "enum": ["Work", "Commute", "Workout"]}},
+      "language": {"type": "string"},
+      "freshness": {"type": "integer", "minimum": 0, "maximum": 100},
+      "taste_vector": {"type": "object"},
+      "recent_track_ids": {"type": "array", "items": {"type": "string"}},
+      "saved_track_ids": {"type": "array", "items": {"type": "string"}}
+    },
+    "required": ["freshness"]
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "tracks": {"type": "array", "items": {"type": "object", "properties": {
+        "id": {"type": "string"}, "why": {"type": "string"},
+        "tag": {"type": "string", "enum": ["fresh", "familiar"]}}}},
+      "freshness_applied": {"type": "integer"},
+      "avoided": {"type": "integer"},
+      "mitigations": {"type": "array", "items": {"type": "string"}}
+    },
+    "required": ["tracks"]
+  }
+}

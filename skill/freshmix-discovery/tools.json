@@ -1,0 +1,32 @@
+[
+  {
+    "name": "get_user_context",
+    "description": "Fetch the user's taste vector, recent plays, saved tracks and playlists.",
+    "input_schema": {"type": "object",
+      "properties": {"user_id": {"type": "string"}}, "required": ["user_id"]}
+  },
+  {
+    "name": "retrieve_review_insights",
+    "description": "Retrieve review-derived pain points to avoid for this request (RAG).",
+    "input_schema": {"type": "object",
+      "properties": {"query": {"type": "string"}, "k": {"type": "integer"}},
+      "required": ["query"]}
+  },
+  {
+    "name": "spotify_search",
+    "description": "Find candidate tracks by seed taste + mood/activity audio features.",
+    "input_schema": {"type": "object", "properties": {
+      "seeds": {"type": "array", "items": {"type": "string"}},
+      "energy": {"type": "number"}, "valence": {"type": "number"},
+      "tempo": {"type": "integer"}, "limit": {"type": "integer"}},
+      "required": ["seeds"]}
+  },
+  {
+    "name": "check_repetition",
+    "description": "Filter out tracks the user heard recently or already saved.",
+    "input_schema": {"type": "object", "properties": {
+      "track_ids": {"type": "array", "items": {"type": "string"}},
+      "recent_ids": {"type": "array", "items": {"type": "string"}}},
+      "required": ["track_ids", "recent_ids"]}
+  }
+]

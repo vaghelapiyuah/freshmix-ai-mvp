@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: freshmix-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /v1/health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false            # set in the Render dashboard (secret)
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-4-8
+
+  - type: web
+    name: freshmix-ui
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: FRESHMIX_API_URL
+        fromService:
+          type: web
+          name: freshmix-api
+          property: host

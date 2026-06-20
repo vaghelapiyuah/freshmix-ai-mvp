@@ -1,0 +1,52 @@
+{
+  "source": "https://spotify-discovery-engine-cgdz6f8vcaxrmskv6gbtze.streamlit.app/",
+  "reviews_analyzed": 186,
+  "discovery_reviews": 179,
+  "top_complaint": {
+    "frustration": "Bad recommendations",
+    "count": 18,
+    "pct_of_feedback": 10.1
+  },
+  "p0_opportunity": {
+    "frustration": "Bad recommendations",
+    "frequency": 18,
+    "avg_severity": 2.0,
+    "business_impact": 3.0,
+    "opportunity_score": 108.0,
+    "priority": "P0"
+  },
+  "root_causes_pct": {
+    "low_trust": 58.1,
+    "context_mismatch": 16.1,
+    "recommendation_fatigue": 12.9,
+    "taste_bubble": 12.9
+  },
+  "unmet_needs_pct": {
+    "less_repetitive_playlists": 6.7,
+    "fresh_but_familiar": 5.6,
+    "mood_aware_discovery": 2.8,
+    "better_control": 2.2
+  },
+  "top_complaints": [
+    {
+      "frustration": "Bad recommendations",
+      "count": 18,
+      "pct_of_feedback": 10.1
+    },
+    {
+      "frustration": "Wrong mood / context",
+      "count": 5,
+      "pct_of_feedback": 2.8
+    },
+    {
+      "frustration": "Same songs repeated",
+      "count": 4,
+      "pct_of_feedback": 2.2
+    },
+    {
+      "frustration": "Same artists repeated",
+      "count": 4,
+      "pct_of_feedback": 2.2
+    }
+  ]
+}

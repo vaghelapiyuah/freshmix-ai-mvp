@@ -1,0 +1,22 @@
+[
+  {
+    "rule": "Explain every track ('why this song')",
+    "evidence": "Low trust = 58.1% of root causes"
+  },
+  {
+    "rule": "Take mood + activity + language as inputs",
+    "evidence": "Context mismatch = 16.1% of root causes"
+  },
+  {
+    "rule": "Give a Familiar\u2194Fresh slider (user controls freshness)",
+    "evidence": "'Better control' unmet need = 2.2% of feedback"
+  },
+  {
+    "rule": "Anti-repeat filter on recent/saved tracks",
+    "evidence": "Recommendation fatigue = 12.9%; #1 complaint = Bad recommendations (10.1%)"
+  },
+  {
+    "rule": "Generate fresh-but-familiar (not random) by default",
+    "evidence": "'Fresh-but-familiar' unmet need = 5.6% of feedback"
+  }
+]

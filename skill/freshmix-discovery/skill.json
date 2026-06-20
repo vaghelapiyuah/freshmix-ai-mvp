@@ -1,0 +1,9 @@
+{
+  "name": "freshmix-discovery",
+  "version": "1.0.0",
+  "description": "Fresh-but-familiar music discovery from mood, activity, language and a freshness level; anti-repeat; explains every pick.",
+  "instructions_file": "SKILL.md",
+  "schema_file": "schema.json",
+  "tools_file": "tools.json",
+  "corpus": "../../data/review_insights.jsonl"
+}
