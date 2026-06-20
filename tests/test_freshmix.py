@@ -161,6 +161,41 @@ def test_api_contract():
     print("  [ok] API /v1 generate + feedback contract holds")
 
 
+def test_feedback_loop_updates_state():
+    from freshmix.feedback import UserState
+    u = UserState()
+    u.apply("save", "t1"); u.apply("skip", "t2"); u.apply("skip", "t3")
+    assert "t1" in u.saved and "t2" in u.skipped and "t3" in u.skipped
+    assert set(u.block_ids()) == {"t1", "t2", "t3"}            # recent+saved+skipped, deduped
+    assert u.dissatisfied(["t2", "t3", "t4"]) is True          # 2/3 skipped -> bias familiar
+    assert u.dissatisfied(["t4", "t5"]) is False
+    print("  [ok] feedback loop updates state + detects skip-all dissatisfaction")
+
+
+def test_rag_retrieve_relevance():
+    from freshmix import rag
+    hits = rag.retrieve(moods=["Chill"], activities=["Work"],
+                        free_text="playlist feels repetitive", k=3)
+    assert len(hits) <= 3
+    if rag.load_corpus():
+        assert hits and "example_text" in hits[0]
+    print(f"  [ok] rag.retrieve returned {len(hits)} relevant pain points")
+
+
+def test_frontend_states():
+    import os
+    os.environ.pop("FRESHMIX_API_URL", None)                   # use in-process backend
+    from streamlit.testing.v1 import AppTest
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
+    assert not at.exception
+    assert len([b for b in at.button if b.label == "Save"]) == 0    # empty state
+    gen = [b for b in at.button if "Generate" in (b.label or "")]
+    gen[0].click(); at.run()
+    assert not at.exception
+    assert len([b for b in at.button if b.label == "Save"]) == CONFIG.queue_size  # results
+    print("  [ok] frontend empty -> results states render with no exceptions")
+
+
 def _run():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0
