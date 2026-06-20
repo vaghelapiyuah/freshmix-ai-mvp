@@ -13,6 +13,8 @@ import urllib.request
 
 class FreshMixClient:
     def __init__(self, base_url: str, timeout: int = 30):
+        if not base_url.startswith(("http://", "https://")):
+            base_url = "https://" + base_url      # Render fromService gives a bare host
         self.base = base_url.rstrip("/")
         self.timeout = timeout
 
