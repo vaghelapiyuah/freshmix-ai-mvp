@@ -23,26 +23,28 @@ def mode() -> str:
 
 
 def generate(free_text="", moods=None, activities=None, freshness=70,
-             recent=None, saved=None) -> Queue:
+             recent=None, saved=None, taste_genres=None) -> Queue:
     url = _url()
     if url:
         data = FreshMixClient(url).generate(free_text, moods, activities, freshness,
-                                            recent, saved)
+                                            recent, saved, taste_genres)
         return Queue.model_validate(data)
     return service.generate_queue(free_text=free_text, moods=moods, activities=activities,
-                                  freshness=freshness, recent=recent, saved=saved)
+                                  freshness=freshness, recent=recent, saved=saved,
+                                  taste_genres=taste_genres)
 
 
 def refresh(free_text="", moods=None, activities=None, freshness=70,
-            recent=None, saved=None, exclude=None) -> QueueItem | None:
+            recent=None, saved=None, taste_genres=None, exclude=None) -> QueueItem | None:
     url = _url()
     if url:
         resp = FreshMixClient(url).feedback("refresh", track_id="", free_text=free_text,
                                             moods=moods, activities=activities,
                                             freshness=freshness, recent=recent,
-                                            saved=saved, exclude=exclude)
+                                            saved=saved, taste_genres=taste_genres,
+                                            exclude=exclude)
         nxt = resp.get("next")
         return QueueItem.model_validate(nxt) if nxt else None
     return service.refresh_track(free_text=free_text, moods=moods, activities=activities,
                                  freshness=freshness, recent=recent, saved=saved,
-                                 exclude=exclude)
+                                 taste_genres=taste_genres, exclude=exclude)

@@ -16,7 +16,7 @@ def _relevance(t: Track, req: DiscoveryRequest, fam_genres) -> float:
     score += len(set(req.activities) & set(t.activities))
     score += t.valence * 0.5
     if t.genre in fam_genres:
-        score += 1.0                       # context: lean on tastes the user already has
+        score += 2.0                       # suggest by previously listened genres
     return score
 
 
@@ -44,7 +44,8 @@ def generate(req: DiscoveryRequest, catalog: list[Track] | None = None) -> Queue
     sig = rag.avoid_signals()
     mood_required = bool(req.moods) and sig["mood"] >= 0.10
     genre_div = sig["repetition"] >= 0.20
-    fam_genres = context.familiar_genres(req.saved_track_ids, catalog)
+    # personalization: prefer the genres the user has previously listened to
+    fam_genres = set(req.taste_genres) or context.familiar_genres(req.saved_track_ids, catalog)
 
     mitigations = []
     if genre_div:
@@ -58,7 +59,8 @@ def generate(req: DiscoveryRequest, catalog: list[Track] | None = None) -> Queue
 
     # 1. candidates — real songs (iTunes) with mock fallback
     if music.source() == "itunes":
-        cands = music.live_candidates(req.moods, req.activities, limit=48)
+        cands = music.live_candidates(req.moods, req.activities, limit=48,
+                                      seeds=req.taste_genres)
         if len(cands) < n:
             cands = cat.candidates(catalog, req.moods, req.activities)
             note = "Live music source unavailable — using offline catalog."

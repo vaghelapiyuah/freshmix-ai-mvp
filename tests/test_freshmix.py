@@ -289,6 +289,21 @@ def test_music_live_mapping():
     print("  [ok] live music mapping -> Track with real art/preview/link")
 
 
+def test_taste_personalization():
+    from freshmix.feedback import UserState
+    # taste profile lifts the listened genre's relevance
+    u = UserState()
+    u.learn("Rock", 5.0); u.learn("Pop", 1.0)
+    assert u.top_genres(1) == ["Rock"]
+    base = generate_queue(moods=["Gym"], activities=["Workout"], freshness=50)
+    tuned = generate_queue(moods=["Gym"], activities=["Workout"], freshness=50,
+                           taste_genres=["Rock"])
+    rock_base = sum(1 for it in base.items if it.track.genre == "Rock")
+    rock_tuned = sum(1 for it in tuned.items if it.track.genre == "Rock")
+    assert rock_tuned >= rock_base                 # listening history pulls Rock up
+    print(f"  [ok] taste personalization: Rock {rock_base}->{rock_tuned} with history")
+
+
 def _run():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0

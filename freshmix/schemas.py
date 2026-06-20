@@ -33,6 +33,7 @@ class DiscoveryRequest(BaseModel):
     freshness: int = 70              # 0 = familiar, 100 = fresh
     recent_track_ids: list[str] = Field(default_factory=list)
     saved_track_ids: list[str] = Field(default_factory=list)
+    taste_genres: list[str] = Field(default_factory=list)   # from previously listened songs
 
 
 class QueueItem(BaseModel):

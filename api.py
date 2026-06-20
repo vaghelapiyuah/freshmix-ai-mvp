@@ -29,6 +29,7 @@ class GenerateBody(BaseModel):
     freshness: int = 70
     recent_track_ids: list[str] = Field(default_factory=list)
     saved_track_ids: list[str] = Field(default_factory=list)
+    taste_genres: list[str] = Field(default_factory=list)
 
 
 class FeedbackBody(GenerateBody):
@@ -68,7 +69,7 @@ def generate(body: GenerateBody) -> Queue:
     return generate_queue(
         free_text=body.free_text, moods=body.moods, activities=body.activities,
         freshness=body.freshness, recent=body.recent_track_ids,
-        saved=body.saved_track_ids,
+        saved=body.saved_track_ids, taste_genres=body.taste_genres,
     )
 
 
@@ -79,7 +80,8 @@ def feedback(body: FeedbackBody) -> dict:
         nxt = refresh_track(
             free_text=body.free_text, moods=body.moods, activities=body.activities,
             freshness=body.freshness, recent=body.recent_track_ids,
-            saved=body.saved_track_ids, exclude=body.exclude,
+            saved=body.saved_track_ids, taste_genres=body.taste_genres,
+            exclude=body.exclude,
         )
     return {"ok": True, "action": body.action, "track_id": body.track_id,
             "next": nxt.model_dump() if nxt else None}
