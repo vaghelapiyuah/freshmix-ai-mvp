@@ -1,5 +1,9 @@
 # FreshMix AI — MVP
 
+[![CI](https://github.com/vaghelapiyuah/freshmix-ai-mvp/actions/workflows/ci.yml/badge.svg)](https://github.com/vaghelapiyuah/freshmix-ai-mvp/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-1DB954.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.12-blue.svg)
+
 The product solution to Spotify's discovery problem: turn **mood, activity,
 language, and a freshness dial** into a **fresh-but-familiar** queue the user can
 trust. Built on the evidence from the Review Discovery Engine
