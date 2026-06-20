@@ -69,6 +69,9 @@ def _params():
 
 def _do_generate():
     p = _params()
+    prev = st.session_state.get("queue") or []
+    if prev and user.dissatisfied([it.track.id for it in prev]):
+        user.freshness_bias = min(40, user.freshness_bias + 15)   # bump once per generate
     eff = max(0, p["freshness"] - user.freshness_bias)
     q = backend.generate(free_text=p["free_text"], moods=p["moods"],
                          activities=p["activities"], freshness=eff,
@@ -173,8 +176,7 @@ elif q:
                 for m in meta.mitigations:
                     st.markdown(f"- {m}")
     if user.dissatisfied([it.track.id for it in q]):
-        st.info("Lots of skips — nudging the next mix more familiar.")
-        user.freshness_bias = min(40, user.freshness_bias + 15)
+        st.info("Lots of skips — your next mix will lean more familiar.")
 
     for i, it in enumerate(list(q)):
         t = it.track
