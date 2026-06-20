@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 
 from config import ACTIVITIES, CONFIG, MOODS
 from . import skill as _skill
+from .safety import redact_pii
 from .schemas import DiscoveryRequest, Track
 
 # The agent's system prompt now comes from the packaged, versioned Agent Skill
@@ -89,7 +90,7 @@ def _llm_parse(free_text: str, client=None) -> ParsedIntent | None:
         client = client or _client()
         prompt = (
             f"Allowed moods: {MOODS}. Allowed activities: {ACTIVITIES}.\n"
-            f"User request: \"{free_text}\"\n"
+            f"User request: \"{redact_pii(free_text)}\"\n"
             "Extract mood(s), activity(ies), freshness (0=familiar..100=fresh), "
             "and language code. Use only allowed values for mood/activity."
         )
@@ -140,7 +141,7 @@ def llm_rationales(tracks, req, novel_ids, client=None) -> dict[str, str] | None
         )
         prompt = (
             f"User wants: mood={req.moods}, activity={req.activities}, "
-            f"freshness={req.freshness}%, prompt=\"{req.free_text}\".\n"
+            f"freshness={req.freshness}%, prompt=\"{redact_pii(req.free_text)}\".\n"
             f"Tracks:\n{listing}\n\n"
             "For each track id give one short 'why this song' line as `id: why`."
         )

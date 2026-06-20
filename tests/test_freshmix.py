@@ -196,6 +196,77 @@ def test_frontend_states():
     print("  [ok] frontend empty -> results states render with no exceptions")
 
 
+def test_edge_empty_inputs():
+    q = generate_queue()                                   # no prompt, no chips
+    assert len(q.items) == CONFIG.queue_size
+    print("  [ok] edge: empty inputs still return a full queue")
+
+
+def test_edge_no_candidates_widen():
+    from freshmix.catalog import candidates, load_catalog
+    cat = load_catalog()
+    chill_ids = [t.id for t in candidates(cat, ["Chill"], [])]
+    q = generate_queue(moods=["Chill"], freshness=70, recent=chill_ids)
+    assert len(q.items) == CONFIG.queue_size               # widened beyond mood
+    print("  [ok] edge: anti-repeat empties pool -> widened to fill queue")
+
+
+def test_edge_language_fallback():
+    from freshmix.agent import parse_intent
+    req = parse_intent("give me songs in klingon", [], [], 70, [], [])
+    assert req.language == "en"
+    print("  [ok] edge: unsupported language falls back to en")
+
+
+def test_edge_redact_pii():
+    from freshmix.safety import redact_pii
+    out = redact_pii("email me a@b.com or call 555-123-4567 please")
+    assert "a@b.com" not in out and "555-123-4567" not in out and "[email]" in out
+    print("  [ok] edge: email/phone redacted before agent + logs")
+
+
+def test_edge_agent_malformed_fallback():
+    from freshmix import agent
+
+    class _Bad:
+        class messages:
+            @staticmethod
+            def parse(**kw):
+                raise RuntimeError("malformed agent output")
+
+    assert agent._llm_parse("gym songs", client=_Bad) is None   # -> rule-based fallback
+    print("  [ok] edge: malformed/raising agent response -> graceful fallback")
+
+
+def test_edge_response_cache():
+    from freshmix import service
+    service._cached.cache_clear()
+    a = generate_queue(moods=["Focus"], activities=["Work"], freshness=70)
+    b = generate_queue(moods=["Focus"], activities=["Work"], freshness=70)
+    assert service._cached.cache_info().hits >= 1               # identical request cached
+    assert [i.track.id for i in a.items] == [i.track.id for i in b.items]
+    a.items.pop()                                              # mutate one copy
+    assert len(b.items) == CONFIG.queue_size                   # copies are independent
+    print("  [ok] edge: identical requests cached; returned copies independent")
+
+
+def test_edge_stale_corpus_graceful():
+    import pathlib
+    from freshmix import rag, recommend
+    from freshmix.schemas import DiscoveryRequest
+    orig = rag._CORPUS
+    try:
+        rag._CORPUS = pathlib.Path("does_not_exist.jsonl")
+        rag.load_corpus.cache_clear()
+        assert rag.avoid_signals()["n"] == 0
+        q = recommend.generate(DiscoveryRequest(moods=["Focus"], freshness=70))
+        assert len(q.items) == CONFIG.queue_size               # still works with no corpus
+    finally:
+        rag._CORPUS = orig
+        rag.load_corpus.cache_clear()
+    print("  [ok] edge: missing/stale corpus degrades gracefully")
+
+
 def _run():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0
