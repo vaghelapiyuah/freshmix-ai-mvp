@@ -33,18 +33,29 @@ st.set_page_config(page_title="FreshMix AI", page_icon="🎧", layout="centered"
 
 st.markdown("""
 <style>
-.block-container{max-width:760px}
-.fm-head{display:flex;align-items:center;gap:12px;margin:4px 0 2px}
-.fm-logo{width:46px;height:46px;border-radius:12px;background:#1DB954}
-.fm-title{font-size:30px;font-weight:700;color:#fff}
-.fm-card{background:#181818;border:1px solid #262626;border-radius:14px;padding:14px 16px;margin-bottom:6px}
-.fm-name{font-size:18px;font-weight:600;color:#fff}
-.fm-artist{font-size:14px;color:#b3b3b3}
-.fm-why{font-size:14px;color:#1DB954;background:rgba(29,185,84,.10);
-  border-radius:8px;padding:4px 10px;display:inline-block;margin-top:6px}
-.fm-tag{font-size:12px;font-weight:700;border-radius:10px;padding:2px 10px;margin-left:8px}
-.fm-fresh{background:rgba(29,185,84,.18);color:#1DB954}
+.block-container{max-width:720px;padding-top:2.2rem}
+.fm-head{display:flex;align-items:center;gap:14px;margin:0 0 2px}
+.fm-logo{width:48px;height:48px;border-radius:14px;background:#1DB954;display:flex;
+  align-items:center;justify-content:center;font-size:24px;color:#06381c}
+.fm-title{font-size:30px;font-weight:700;color:#fff;letter-spacing:-0.5px}
+.fm-label{font-size:12px;font-weight:700;letter-spacing:.12em;color:#8a8a8a;
+  text-transform:uppercase;margin:16px 0 4px}
+.fm-card{display:flex;gap:14px;background:#181818;border:1px solid #262626;
+  border-radius:14px;padding:14px 16px;margin-bottom:8px}
+.fm-art{width:54px;height:54px;border-radius:10px;flex:none;background:#202020;
+  border:1px solid #2e2e2e;display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:#777}
+.fm-art.fresh{background:rgba(29,185,84,.15);border-color:rgba(29,185,84,.4);color:#1DB954}
+.fm-name{font-size:17px;font-weight:600;color:#fff}
+.fm-artist{font-size:13px;color:#b3b3b3;margin-top:1px}
+.fm-why{font-size:13px;color:#1DB954;background:rgba(29,185,84,.10);
+  border-radius:8px;padding:4px 10px;display:inline-block;margin-top:8px}
+.fm-tag{font-size:11px;font-weight:700;border-radius:10px;padding:2px 9px;margin-left:8px;
+  vertical-align:middle}
+.fm-fresh{background:rgba(29,185,84,.20);color:#1DB954}
 .fm-fam{background:#2a2a2a;color:#b3b3b3}
+.fm-saved{color:#1DB954;font-size:12px;margin-left:6px;font-weight:600}
+.stButton>button{border-radius:10px}
 </style>
 """, unsafe_allow_html=True)
 
@@ -105,7 +116,7 @@ def _replace(idx, mark_skip):
 
 
 # --- header ---
-st.markdown('<div class="fm-head"><div class="fm-logo"></div>'
+st.markdown('<div class="fm-head"><div class="fm-logo">♫</div>'
             '<div class="fm-title">FreshMix AI</div></div>', unsafe_allow_html=True)
 st.caption("Fresh-but-familiar discovery — mood, activity, and a freshness dial you control."
            + ("  ·  Claude rationale ON" if CONFIG.has_api_key else "  ·  offline mode")
@@ -125,14 +136,16 @@ st.text_input("Prompt", key="prompt",
               placeholder="Refresh my playlist but keep the same vibe",
               label_visibility="collapsed")
 
-st.markdown("**Mood**")
+st.markdown('<div class="fm-label">Mood</div>', unsafe_allow_html=True)
 st.pills("Mood", MOODS, selection_mode="multi", key="moods", label_visibility="collapsed",
          default=["Focus"])
-st.markdown("**Activity**")
+st.markdown('<div class="fm-label">Activity</div>', unsafe_allow_html=True)
 st.pills("Activity", ACTIVITIES, selection_mode="multi", key="acts",
          label_visibility="collapsed", default=["Work"])
 
-st.markdown("**Freshness**")
+_cur = st.session_state.get("fresh", CONFIG.default_freshness)
+st.markdown(f'<div class="fm-label">Freshness — '
+            f'<span style="color:#1DB954">{_cur}% fresh</span></div>', unsafe_allow_html=True)
 st.slider("Freshness", 0, 100, CONFIG.default_freshness, key="fresh",
           label_visibility="collapsed",
           help="0 = familiar favourites · 100 = all-new discovery")
@@ -182,12 +195,14 @@ elif q:
         t = it.track
         saved = t.id in user.saved
         tagcls = "fm-fresh" if it.tag == "fresh" else "fm-fam"
+        artcls = "fm-art fresh" if it.tag == "fresh" else "fm-art"
+        saved_html = '<span class="fm-saved">✓ saved</span>' if saved else ""
         st.markdown(
-            f'<div class="fm-card"><div class="fm-name">{t.name}'
-            f'<span class="fm-tag {tagcls}">{it.tag}</span>'
-            f'{" ✓ saved" if saved else ""}</div>'
+            f'<div class="fm-card"><div class="{artcls}">♪</div><div>'
+            f'<div class="fm-name">{t.name}'
+            f'<span class="fm-tag {tagcls}">{it.tag}</span>{saved_html}</div>'
             f'<div class="fm-artist">{t.artist} · {t.genre} · {t.year}</div>'
-            f'<div class="fm-why">Why? {it.why}</div></div>',
+            f'<div class="fm-why">Why? {it.why}</div></div></div>',
             unsafe_allow_html=True)
         b1, b2, b3 = st.columns(3)
         if b1.button("Save", key=f"s{i}_{t.id}", use_container_width=True):
