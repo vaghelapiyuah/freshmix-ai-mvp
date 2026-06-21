@@ -14,29 +14,34 @@ from .schemas import Queue, QueueItem
 
 
 @lru_cache(maxsize=256)
-def _cached(free_text, moods_t, acts_t, freshness, recent_t, saved_t, taste_t) -> Queue:
+def _cached(free_text, moods_t, acts_t, freshness, recent_t, saved_t,
+            taste_t, artist_t) -> Queue:
     req = agent.parse_intent(free_text, list(moods_t), list(acts_t), freshness,
                              list(recent_t), list(saved_t))
     req.taste_genres = list(taste_t)
+    req.taste_artists = list(artist_t)
     return recommend.generate(req)
 
 
 def generate_queue(free_text: str = "", moods=None, activities=None, freshness: int = 70,
-                   recent=None, saved=None, taste_genres=None, catalog=None) -> Queue:
+                   recent=None, saved=None, taste_genres=None, taste_artists=None,
+                   catalog=None) -> Queue:
     if catalog is not None:                       # tests with a custom catalog bypass cache
         req = agent.parse_intent(free_text, moods or [], activities or [], freshness,
                                  recent or [], saved or [])
         req.taste_genres = taste_genres or []
+        req.taste_artists = taste_artists or []
         return recommend.generate(req, catalog)
     q = _cached(free_text, tuple(moods or []), tuple(activities or []), freshness,
-                tuple(recent or []), tuple(saved or []), tuple(taste_genres or []))
+                tuple(recent or []), tuple(saved or []), tuple(taste_genres or []),
+                tuple(taste_artists or []))
     return q.model_copy(deep=True)                # fresh copy — never hand out the cached object
 
 
 def refresh_track(free_text: str = "", moods=None, activities=None, freshness: int = 70,
-                  recent=None, saved=None, taste_genres=None, exclude=None,
-                  catalog=None) -> QueueItem | None:
+                  recent=None, saved=None, taste_genres=None, taste_artists=None,
+                  exclude=None, catalog=None) -> QueueItem | None:
     block = list(dict.fromkeys((recent or []) + (exclude or [])))
     q = generate_queue(free_text, moods, activities, freshness, block, saved,
-                       taste_genres, catalog)
+                       taste_genres, taste_artists, catalog)
     return q.items[0] if q.items else None

@@ -23,28 +23,30 @@ def mode() -> str:
 
 
 def generate(free_text="", moods=None, activities=None, freshness=70,
-             recent=None, saved=None, taste_genres=None) -> Queue:
+             recent=None, saved=None, taste_genres=None, taste_artists=None) -> Queue:
     url = _url()
     if url:
         data = FreshMixClient(url).generate(free_text, moods, activities, freshness,
-                                            recent, saved, taste_genres)
+                                            recent, saved, taste_genres, taste_artists)
         return Queue.model_validate(data)
     return service.generate_queue(free_text=free_text, moods=moods, activities=activities,
                                   freshness=freshness, recent=recent, saved=saved,
-                                  taste_genres=taste_genres)
+                                  taste_genres=taste_genres, taste_artists=taste_artists)
 
 
 def refresh(free_text="", moods=None, activities=None, freshness=70,
-            recent=None, saved=None, taste_genres=None, exclude=None) -> QueueItem | None:
+            recent=None, saved=None, taste_genres=None, taste_artists=None,
+            exclude=None) -> QueueItem | None:
     url = _url()
     if url:
         resp = FreshMixClient(url).feedback("refresh", track_id="", free_text=free_text,
                                             moods=moods, activities=activities,
                                             freshness=freshness, recent=recent,
                                             saved=saved, taste_genres=taste_genres,
-                                            exclude=exclude)
+                                            taste_artists=taste_artists, exclude=exclude)
         nxt = resp.get("next")
         return QueueItem.model_validate(nxt) if nxt else None
     return service.refresh_track(free_text=free_text, moods=moods, activities=activities,
                                  freshness=freshness, recent=recent, saved=saved,
-                                 taste_genres=taste_genres, exclude=exclude)
+                                 taste_genres=taste_genres, taste_artists=taste_artists,
+                                 exclude=exclude)

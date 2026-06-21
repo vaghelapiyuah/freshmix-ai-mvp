@@ -73,10 +73,13 @@ def _to_track(r: dict, moods, activities) -> Track | None:
     )
 
 
-def live_candidates(moods, activities, limit: int = 48, seeds=None) -> list[Track]:
-    """Real tracks for the selected mood/activity, seeded by listening history.
-    [] on failure -> mock fallback."""
+def live_candidates(moods, activities, limit: int = 48, seeds=None,
+                    artist_seeds=None) -> list[Track]:
+    """Real tracks for the selected mood/activity, seeded by listening history
+    (favourite artists first, then genres). [] on failure -> mock fallback."""
     terms: list[str] = []
+    for a in (artist_seeds or [])[:2]:           # favourite artists from history
+        terms.append(a)
     for g in (seeds or [])[:3]:                  # taste genres from previous listens
         terms.append(g)
     for m in (moods or []):

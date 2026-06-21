@@ -304,6 +304,24 @@ def test_taste_personalization():
     print(f"  [ok] taste personalization: Rock {rock_base}->{rock_tuned} with history")
 
 
+def test_userstate_observe_genre_and_artist():
+    from freshmix.feedback import UserState
+    from freshmix.schemas import Track
+    u = UserState()
+    t = Track(id="x", name="n", artist="Artist A", genre="Rock", year=2020, new_artist=False)
+    u.observe(t, 2.0); u.observe(t, 1.0)
+    assert u.top_genres(1) == ["Rock"] and u.top_artists(1) == ["Artist A"]
+    print("  [ok] observe builds genre + artist taste")
+
+
+def test_artist_personalization():
+    base = generate_queue(moods=["Gym"], activities=["Workout"], freshness=50)
+    tuned = generate_queue(moods=["Gym"], activities=["Workout"], freshness=50,
+                           taste_artists=["Rock Artist 2"])
+    assert any(it.track.artist == "Rock Artist 2" for it in tuned.items)
+    print("  [ok] artist personalization surfaces the favourite artist")
+
+
 def _run():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0

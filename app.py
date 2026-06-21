@@ -90,14 +90,14 @@ def _do_generate():
     q = backend.generate(free_text=p["free_text"], moods=p["moods"],
                          activities=p["activities"], freshness=eff,
                          recent=user.block_ids(), saved=user.saved,
-                         taste_genres=user.top_genres(3))
+                         taste_genres=user.top_genres(3), taste_artists=user.top_artists(3))
     st.session_state.queue = q.items
     st.session_state.qmeta = q
     st.session_state.params = p
     for it in q.items:
         if it.track.id not in user.recent:
             user.recent.append(it.track.id)
-        user.learn(it.track.genre, 0.5)          # listening history shapes future mixes
+        user.observe(it.track, 0.5)              # listening history (genre + artist)
 
 
 def _replace(idx, mark_skip):
@@ -113,7 +113,8 @@ def _replace(idx, mark_skip):
     repl = backend.refresh(free_text=pr["free_text"], moods=pr["moods"],
                            activities=pr["activities"], freshness=pr["freshness"],
                            recent=user.block_ids(), saved=user.saved,
-                           taste_genres=user.top_genres(3), exclude=shown)
+                           taste_genres=user.top_genres(3),
+                           taste_artists=user.top_artists(3), exclude=shown)
     if repl:
         q[idx] = repl
         user.recent.append(repl.track.id)
@@ -219,7 +220,7 @@ elif q:
             st.audio(t.preview_url, format="audio/mp4")
         b1, b2, b3 = st.columns(3)
         if b1.button("Save", key=f"s{i}_{t.id}", use_container_width=True):
-            user.apply("save", t.id); user.learn(t.genre, 2.0); st.rerun()
+            user.apply("save", t.id); user.observe(t, 2.0); st.rerun()
         if b2.button("Skip", key=f"k{i}_{t.id}", use_container_width=True):
             _replace(i, mark_skip=True); st.rerun()
         if b3.button("Refresh", key=f"r{i}_{t.id}", use_container_width=True):

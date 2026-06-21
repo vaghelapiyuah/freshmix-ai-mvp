@@ -11,15 +11,27 @@ class UserState:
     skipped: list[str] = field(default_factory=list)     # skipped track ids
     recent: list[str] = field(default_factory=list)      # recently served (anti-repeat)
     freshness_bias: int = 0                               # nudges next freshness
-    taste: dict = field(default_factory=dict)            # genre -> weight (listening history)
+    taste: dict = field(default_factory=dict)            # genre -> weight (history)
+    taste_artist: dict = field(default_factory=dict)     # artist -> weight (history)
 
     def learn(self, genre: str, weight: float = 1.0) -> None:
-        """Build the taste profile from songs the user has listened to / saved."""
         if genre:
             self.taste[genre] = self.taste.get(genre, 0.0) + weight
 
+    def learn_artist(self, artist: str, weight: float = 1.0) -> None:
+        if artist:
+            self.taste_artist[artist] = self.taste_artist.get(artist, 0.0) + weight
+
+    def observe(self, track, weight: float = 0.5) -> None:
+        """Update genre + artist taste from a listened/saved track."""
+        self.learn(getattr(track, "genre", ""), weight)
+        self.learn_artist(getattr(track, "artist", ""), weight)
+
     def top_genres(self, k: int = 3) -> list[str]:
         return [g for g, _ in sorted(self.taste.items(), key=lambda x: -x[1])[:k]]
+
+    def top_artists(self, k: int = 3) -> list[str]:
+        return [a for a, _ in sorted(self.taste_artist.items(), key=lambda x: -x[1])[:k]]
 
     def apply(self, action: str, track_id: str) -> None:
         if track_id not in self.recent:

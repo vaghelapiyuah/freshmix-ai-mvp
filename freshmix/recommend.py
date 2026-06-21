@@ -10,13 +10,15 @@ from . import agent, catalog as cat, context, music, rag
 from .schemas import DiscoveryRequest, Queue, QueueItem, Track
 
 
-def _relevance(t: Track, req: DiscoveryRequest, fam_genres) -> float:
+def _relevance(t: Track, req: DiscoveryRequest, fam_genres, fav_artists) -> float:
     score = 0.0
     score += len(set(req.moods) & set(t.moods)) * 2
     score += len(set(req.activities) & set(t.activities))
     score += t.valence * 0.5
     if t.genre in fam_genres:
         score += 2.0                       # suggest by previously listened genres
+    if t.artist in fav_artists:
+        score += 3.0                       # ...and favourite artists (stronger)
     return score
 
 
@@ -44,8 +46,9 @@ def generate(req: DiscoveryRequest, catalog: list[Track] | None = None) -> Queue
     sig = rag.avoid_signals()
     mood_required = bool(req.moods) and sig["mood"] >= 0.10
     genre_div = sig["repetition"] >= 0.20
-    # personalization: prefer the genres the user has previously listened to
+    # personalization: prefer genres + artists the user has previously listened to
     fam_genres = set(req.taste_genres) or context.familiar_genres(req.saved_track_ids, catalog)
+    fav_artists = set(req.taste_artists)
 
     mitigations = []
     if genre_div:
@@ -60,7 +63,7 @@ def generate(req: DiscoveryRequest, catalog: list[Track] | None = None) -> Queue
     # 1. candidates — real songs (iTunes) with mock fallback
     if music.source() == "itunes":
         cands = music.live_candidates(req.moods, req.activities, limit=48,
-                                      seeds=req.taste_genres)
+                                      seeds=req.taste_genres, artist_seeds=req.taste_artists)
         if len(cands) < n:
             cands = cat.candidates(catalog, req.moods, req.activities)
             note = "Live music source unavailable — using offline catalog."
@@ -82,7 +85,7 @@ def generate(req: DiscoveryRequest, catalog: list[Track] | None = None) -> Queue
             note = "Widened beyond your mood to avoid repeats."
 
     # 3. split novel vs familiar, ranked (relevance + familiar-genre lean)
-    filtered.sort(key=lambda t: _relevance(t, req, fam_genres), reverse=True)
+    filtered.sort(key=lambda t: _relevance(t, req, fam_genres, fav_artists), reverse=True)
     novel = [t for t in filtered if t.new_artist]
     familiar = [t for t in filtered if not t.new_artist]
 

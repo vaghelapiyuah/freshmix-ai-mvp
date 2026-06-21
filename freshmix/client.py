@@ -34,19 +34,21 @@ class FreshMixClient:
         return self._get("/v1/health")
 
     def generate(self, free_text="", moods=None, activities=None, freshness=70,
-                 recent=None, saved=None, taste_genres=None) -> dict:
+                 recent=None, saved=None, taste_genres=None, taste_artists=None) -> dict:
         return self._post("/v1/freshmix/generate", {
             "free_text": free_text, "moods": moods or [], "activities": activities or [],
             "freshness": freshness, "recent_track_ids": recent or [],
             "saved_track_ids": saved or [], "taste_genres": taste_genres or [],
+            "taste_artists": taste_artists or [],
         })
 
     def feedback(self, action, track_id, free_text="", moods=None, activities=None,
                  freshness=70, recent=None, saved=None, taste_genres=None,
-                 exclude=None) -> dict:
+                 taste_artists=None, exclude=None) -> dict:
         return self._post("/v1/freshmix/feedback", {
             "action": action, "track_id": track_id, "free_text": free_text,
             "moods": moods or [], "activities": activities or [], "freshness": freshness,
             "recent_track_ids": recent or [], "saved_track_ids": saved or [],
-            "taste_genres": taste_genres or [], "exclude": exclude or [],
+            "taste_genres": taste_genres or [], "taste_artists": taste_artists or [],
+            "exclude": exclude or [],
         })
