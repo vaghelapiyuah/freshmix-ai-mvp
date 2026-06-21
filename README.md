@@ -17,11 +17,32 @@ Add `ANTHROPIC_API_KEY` to enable Claude-written "why this song" rationale.
 for the taste vector when the app has access) · `mock` (offline catalog). Any
 source falls back gracefully if unavailable.
 
+## Two frontends, one backend
+
+| Frontend | Tech | Host | Talks to |
+|---|---|---|---|
+| `app.py` | Streamlit (server) | Streamlit Cloud | in-process backend |
+| `web/` | static HTML/JS | **Vercel** (or any static host) | FastAPI `api.py` over REST |
+
+The `web/` app is a static SPA — the only Vercel-compatible option (Streamlit needs
+a persistent server). It calls the FastAPI backend, so deploy `api.py` somewhere
+persistent (Render `render.yaml` is included) and point the web app at it via the
+**“API”** button (saved in your browser).
+
+### Deploy the Vercel frontend
+1. Deploy the backend first (Render → uses `render.yaml`) and copy its URL, e.g. `https://freshmix-api.onrender.com`.
+2. On **vercel.com** → *Add New Project* → import `vaghelapiyuah/freshmix-ai-mvp`.
+   `vercel.json` serves the `web/` folder (Framework Preset: **Other**, no build).
+3. Open the deployed site → click **API** → paste your backend URL. Done — real songs + personalization.
+
 ## Run
 
 ```bash
 pip install -r requirements.txt
-streamlit run app.py
+streamlit run app.py                 # Streamlit UI (in-process)
+
+uvicorn api:app --port 8000          # REST backend for the web/ frontend
+python -m http.server 5500 -d web    # then open http://localhost:5500
 ```
 
 Then: pick mood + activity, set the freshness slider, tap **Generate FreshMix**,

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FreshMix AI — fresh but familiar</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎧</text></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🎧 <span>FreshMix<b>AI</b></span></div>
+    <button id="apiBtn" class="ghost" title="Set backend API URL">API</button>
+  </header>
+
+  <main>
+    <p class="tagline">Turn your mood into a <b>fresh-but-familiar</b> queue — with a reason for every song.</p>
+
+    <section class="controls">
+      <label class="lbl">What are you in the mood for?</label>
+      <input id="prompt" type="text" placeholder="e.g. upbeat focus music for coding" />
+
+      <label class="lbl">Mood</label>
+      <div id="moods" class="chips"></div>
+
+      <label class="lbl">Activity</label>
+      <div id="acts" class="chips"></div>
+
+      <label class="lbl">Freshness — <span id="freshVal">70</span>% new</label>
+      <input id="fresh" type="range" min="0" max="100" value="70" />
+
+      <button id="go" class="primary">Generate FreshMix</button>
+      <p id="status" class="status"></p>
+      <p id="taste" class="taste"></p>
+    </section>
+
+    <section id="results" class="results"></section>
+  </main>
+
+  <footer class="foot">Personalized from songs you save &amp; play — stored only in your browser.</footer>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

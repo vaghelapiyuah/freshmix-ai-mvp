@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "freshmix-web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5500", "-d", "web"],
+      "port": 5500
+    }
+  ]
+}

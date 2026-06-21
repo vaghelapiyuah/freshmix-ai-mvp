@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from freshmix import generate_queue, refresh_track
@@ -20,6 +21,14 @@ from freshmix.schemas import Queue
 
 DATA = Path(__file__).resolve().parent / "data"
 app = FastAPI(title="FreshMix AI API", version="1.0.0")
+
+# Allow the Vercel (or any) web frontend to call this API from the browser.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class GenerateBody(BaseModel):
