@@ -1,3 +1,6 @@
+# Render Blueprint — FreshMix backend API (frontend deploys separately on Vercel).
+# Deploy: render.com -> New -> Blueprint -> pick this repo. CORS is open so the
+# Vercel frontend can call it. ANTHROPIC_API_KEY is optional (rule-based fallback).
 services:
   - type: web
     name: freshmix-api
@@ -7,20 +10,13 @@ services:
     startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /v1/health
     envVars:
+      - key: MUSIC_SOURCE
+        value: itunes              # real songs, no key. Use "spotify" + creds below.
+      - key: SPOTIFY_CLIENT_ID
+        sync: false                # optional — set in the Render dashboard
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
       - key: ANTHROPIC_API_KEY
-        sync: false            # set in the Render dashboard (secret)
+        sync: false                # optional — enables Claude "why this song"
       - key: ANTHROPIC_MODEL
         value: claude-opus-4-8
-
-  - type: web
-    name: freshmix-ui
-    runtime: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
-    envVars:
-      - key: FRESHMIX_API_URL
-        fromService:
-          type: web
-          name: freshmix-api
-          property: host
