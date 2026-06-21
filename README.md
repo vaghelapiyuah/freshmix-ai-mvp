@@ -9,6 +9,15 @@ language, and a freshness dial** into a **fresh-but-familiar** queue the user ca
 trust. Built on the evidence from the Review Discovery Engine
 (`spotify-discovery-engine-cgdz6f8vcaxrmskv6gbtze.streamlit.app`).
 
+## 🎧 Live demo
+
+- **App:** https://vaghelapiyuah-freshmix-ai-mvp.vercel.app
+- **API:** https://freshmix-api-nvea.onrender.com — [health](https://freshmix-api-nvea.onrender.com/v1/health) · [docs](https://freshmix-api-nvea.onrender.com/docs)
+
+Static frontend on **Vercel** → FastAPI backend on **Render** → real songs
+(Apple Music), with personalization by your previously listened songs.
+First load after idle takes ~40s (Render free tier waking up), then it's instant.
+
 Runs **fully offline** (mock catalog + rule-based agent) — no API keys needed.
 Add `ANTHROPIC_API_KEY` to enable Claude-written "why this song" rationale.
 
