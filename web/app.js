@@ -97,17 +97,26 @@ function render() {
 
 async function generate() {
   $("go").disabled = true; $("status").textContent = "Mixing your fresh queue…";
+  const slow = setTimeout(() => { $("status").textContent = "Waking the server (first request can take ~30s)…"; }, 3500);
   try {
     const q = await api("/v1/freshmix/generate", payload());
+    clearTimeout(slow);
     state.queue = q.items || [];
     for (const it of state.queue) { const id = it.track.id; if (!recent.includes(id)) recent.push(id); learn(it.track, 0.5); }
     save("freshmix_recent", recent.slice(-60));
     $("status").textContent = `${q.freshness_applied ?? $("fresh").value}% fresh · ${q.note || ""}`.trim();
     render(); showTaste();
   } catch (e) {
+    clearTimeout(slow);
     $("status").textContent = "Couldn't reach the API. Set the backend URL with the “API” button. (" + e.message + ")";
   } finally { $("go").disabled = false; }
 }
+
+// Pre-warm the backend the moment the page opens (Render free tier sleeps), and
+// keep it warm while the tab is open — so Generate feels instant.
+function warm() { fetch(API() + "/v1/health", { mode: "cors" }).catch(() => {}); }
+warm();
+setInterval(warm, 240000);   // every 4 min
 
 async function replace(idx, trackId) {
   const shown = state.queue.map((it) => it.track.id);
