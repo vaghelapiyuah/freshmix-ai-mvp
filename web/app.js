@@ -126,12 +126,7 @@ async function replace(idx, trackId) {
   } catch { $("status").textContent = "Refresh failed — check the API URL."; }
 }
 
-// ---- API URL setting ----
-$("apiBtn").onclick = () => {
-  const cur = localStorage.getItem("freshmix_api") || API();
-  const v = prompt("Backend API URL (your deployed FastAPI):", cur);
-  if (v) { localStorage.setItem("freshmix_api", v.replace(/\/+$/, "")); window.FRESHMIX_API = v.replace(/\/+$/, ""); $("status").textContent = "API set to " + window.FRESHMIX_API; }
-};
+// (Backend URL comes from config.js — default Render API, overridable via ?api=)
 
 // ---- init ----
 chips($("moods"), MOODS, state.moods);
