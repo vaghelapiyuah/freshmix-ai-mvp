@@ -39,6 +39,28 @@ def _relevance(t: Track, req: DiscoveryRequest, fam_genres, fav_artists) -> floa
     return score
 
 
+def _fetch_candidates(req: DiscoveryRequest, catalog, n):
+    """Real songs from the configured source, with graceful fallback. -> (cands, note)."""
+    src = music.source()
+    if src in ("spotify", "itunes"):
+        if src == "spotify":
+            from . import spotify
+            cands = spotify.live_candidates(req.moods, req.activities, 48,
+                                            seeds=req.taste_genres,
+                                            artist_seeds=req.taste_artists)
+            label = "Spotify"
+        else:
+            cands = music.live_candidates(req.moods, req.activities, 48,
+                                          seeds=req.taste_genres,
+                                          artist_seeds=req.taste_artists)
+            label = "Apple Music"
+        if len(cands) >= n:
+            return cands, f"Real songs via {label}."
+        return (cat.candidates(catalog, req.moods, req.activities),
+                f"{label} unavailable — using offline catalog.")
+    return cat.candidates(catalog, req.moods, req.activities), ""
+
+
 def _pick(bucket, count, used, gcount, cap):
     out = []
     for t in bucket:
@@ -77,17 +99,8 @@ def generate(req: DiscoveryRequest, catalog: list[Track] | None = None) -> Queue
     if hit:
         mitigations.append(f"e.g. avoiding: \"{hit[0]['example_text'][:70]}…\"")
 
-    # 1. candidates — real songs (iTunes) with mock fallback
-    if music.source() == "itunes":
-        cands = music.live_candidates(req.moods, req.activities, limit=48,
-                                      seeds=req.taste_genres, artist_seeds=req.taste_artists)
-        if len(cands) < n:
-            cands = cat.candidates(catalog, req.moods, req.activities)
-            note = "Live music source unavailable — using offline catalog."
-        else:
-            note = "Real songs via Apple Music."
-    else:
-        cands = cat.candidates(catalog, req.moods, req.activities)
+    # 1. candidates — real songs (Spotify / iTunes) with mock fallback
+    cands, note = _fetch_candidates(req, catalog, n)
     if mood_required:
         mm = [t for t in cands if set(req.moods) & set(t.moods)]
         cands = mm or cands

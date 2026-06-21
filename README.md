@@ -12,6 +12,11 @@ trust. Built on the evidence from the Review Discovery Engine
 Runs **fully offline** (mock catalog + rule-based agent) — no API keys needed.
 Add `ANTHROPIC_API_KEY` to enable Claude-written "why this song" rationale.
 
+**Music source** (`MUSIC_SOURCE`): `itunes` (real songs, no key — default) ·
+`spotify` (real Spotify API — set `SPOTIFY_CLIENT_ID`/`SECRET`; uses audio-features
+for the taste vector when the app has access) · `mock` (offline catalog). Any
+source falls back gracefully if unavailable.
+
 ## Run
 
 ```bash

@@ -344,6 +344,50 @@ def test_taste_vector_builds_and_ranks():
     print("  [ok] taste vector (audio features) builds + ranks similar tracks higher")
 
 
+def test_spotify_no_creds_graceful():
+    import os
+    from freshmix import spotify
+    old = (os.environ.pop("SPOTIFY_CLIENT_ID", None),
+           os.environ.pop("SPOTIFY_CLIENT_SECRET", None))
+    try:
+        assert spotify.available() is False
+        assert spotify.live_candidates(["Focus"], ["Work"]) == []   # no creds -> fallback
+    finally:
+        if old[0]:
+            os.environ["SPOTIFY_CLIENT_ID"] = old[0]
+        if old[1]:
+            os.environ["SPOTIFY_CLIENT_SECRET"] = old[1]
+    print("  [ok] Spotify with no creds returns [] (graceful fallback)")
+
+
+def test_spotify_mapping_mocked():
+    import os
+    from freshmix import spotify
+    os.environ["SPOTIFY_CLIENT_ID"] = "x"
+    os.environ["SPOTIFY_CLIENT_SECRET"] = "y"
+    fake = [{"id": "T1", "name": "Real SP Song", "preview_url": "https://p",
+             "external_urls": {"spotify": "https://open.spotify.com/track/T1"},
+             "artists": [{"id": "A1", "name": "SP Artist"}],
+             "album": {"release_date": "2026-01-01",
+                       "images": [{"url": "https://img"}]}}]
+    saved = (spotify._token, spotify._search, spotify._artist_genres, spotify._audio_features)
+    try:
+        spotify._token = lambda: "tok"
+        spotify._search = lambda term, token, limit=8: fake
+        spotify._artist_genres = lambda ids, token: {"A1": "Hip Hop"}
+        spotify._audio_features = lambda ids, token: {"T1": {"energy": 0.8, "valence": 0.6, "tempo": 128}}
+        tracks = spotify.live_candidates(["Gym"], ["Workout"], limit=5)
+        t = tracks[0]
+        assert t.name == "Real SP Song" and t.genre == "Hip Hop" and t.energy == 0.8
+        assert t.artwork_url and t.url and t.new_artist
+    finally:
+        (spotify._token, spotify._search, spotify._artist_genres,
+         spotify._audio_features) = saved
+        os.environ.pop("SPOTIFY_CLIENT_ID", None)
+        os.environ.pop("SPOTIFY_CLIENT_SECRET", None)
+    print("  [ok] Spotify mapping -> Track with genre + real audio features")
+
+
 def _run():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0
