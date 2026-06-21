@@ -322,6 +322,28 @@ def test_artist_personalization():
     print("  [ok] artist personalization surfaces the favourite artist")
 
 
+def test_taste_vector_builds_and_ranks():
+    from freshmix import recommend
+    from freshmix.feedback import UserState
+    from freshmix.schemas import DiscoveryRequest, Track
+
+    # UserState builds an averaged audio-feature vector from listens
+    u = UserState()
+    u.observe(Track(id="a", name="a", artist="A", genre="Rock", year=2020,
+                    new_artist=False, energy=0.9, valence=0.6, tempo=140), 1.0)
+    vec = u.taste_vector()
+    assert round(vec["energy"], 1) == 0.9 and round(vec["tempo"]) == 140
+
+    # similarity ranks a matching track above a dissimilar one
+    req = DiscoveryRequest(taste_vector=vec)
+    hi = Track(id="h", name="h", artist="H", genre="Rock", year=2024, new_artist=True,
+               energy=0.9, valence=0.6, tempo=140)
+    lo = Track(id="l", name="l", artist="L", genre="Ambient", year=2024, new_artist=True,
+               energy=0.2, valence=0.5, tempo=75)
+    assert recommend._relevance(hi, req, set(), set()) > recommend._relevance(lo, req, set(), set())
+    print("  [ok] taste vector (audio features) builds + ranks similar tracks higher")
+
+
 def _run():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0

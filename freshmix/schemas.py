@@ -35,6 +35,7 @@ class DiscoveryRequest(BaseModel):
     saved_track_ids: list[str] = Field(default_factory=list)
     taste_genres: list[str] = Field(default_factory=list)    # from previously listened songs
     taste_artists: list[str] = Field(default_factory=list)   # favourite artists (history)
+    taste_vector: dict = Field(default_factory=dict)         # audio-feature profile (history)
 
 
 class QueueItem(BaseModel):

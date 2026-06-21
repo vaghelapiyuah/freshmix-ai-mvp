@@ -90,7 +90,8 @@ def _do_generate():
     q = backend.generate(free_text=p["free_text"], moods=p["moods"],
                          activities=p["activities"], freshness=eff,
                          recent=user.block_ids(), saved=user.saved,
-                         taste_genres=user.top_genres(3), taste_artists=user.top_artists(3))
+                         taste_genres=user.top_genres(3), taste_artists=user.top_artists(3),
+                         taste_vector=user.taste_vector())
     st.session_state.queue = q.items
     st.session_state.qmeta = q
     st.session_state.params = p
@@ -114,7 +115,8 @@ def _replace(idx, mark_skip):
                            activities=pr["activities"], freshness=pr["freshness"],
                            recent=user.block_ids(), saved=user.saved,
                            taste_genres=user.top_genres(3),
-                           taste_artists=user.top_artists(3), exclude=shown)
+                           taste_artists=user.top_artists(3),
+                           taste_vector=user.taste_vector(), exclude=shown)
     if repl:
         q[idx] = repl
         user.recent.append(repl.track.id)

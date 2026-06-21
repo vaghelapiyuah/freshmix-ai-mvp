@@ -5,9 +5,25 @@ actively steers this away from the real pain points.
 
 from __future__ import annotations
 
+import math
+
 from config import CONFIG
 from . import agent, catalog as cat, context, music, rag
 from .schemas import DiscoveryRequest, Queue, QueueItem, Track
+
+
+def _vec_sim(t: Track, vec: dict) -> float:
+    """Similarity of a track to the user's audio-feature taste vector (0..1.5)."""
+    if not vec:
+        return 0.0
+    def nt(x):  # normalize tempo to 0..1
+        return min(max(x, 40), 200) / 200
+    d = math.sqrt(
+        (t.energy - vec.get("energy", t.energy)) ** 2
+        + (t.valence - vec.get("valence", t.valence)) ** 2
+        + (nt(t.tempo) - nt(vec.get("tempo", t.tempo))) ** 2
+    )
+    return max(0.0, 1.5 * (1 - d / math.sqrt(3)))
 
 
 def _relevance(t: Track, req: DiscoveryRequest, fam_genres, fav_artists) -> float:
@@ -19,6 +35,7 @@ def _relevance(t: Track, req: DiscoveryRequest, fam_genres, fav_artists) -> floa
         score += 2.0                       # suggest by previously listened genres
     if t.artist in fav_artists:
         score += 3.0                       # ...and favourite artists (stronger)
+    score += _vec_sim(t, req.taste_vector)  # ...and audio-feature similarity
     return score
 
 

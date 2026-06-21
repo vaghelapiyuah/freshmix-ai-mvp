@@ -13,6 +13,8 @@ class UserState:
     freshness_bias: int = 0                               # nudges next freshness
     taste: dict = field(default_factory=dict)            # genre -> weight (history)
     taste_artist: dict = field(default_factory=dict)     # artist -> weight (history)
+    feat_sum: dict = field(default_factory=dict)         # audio-feature running sums
+    feat_n: float = 0.0
 
     def learn(self, genre: str, weight: float = 1.0) -> None:
         if genre:
@@ -23,9 +25,20 @@ class UserState:
             self.taste_artist[artist] = self.taste_artist.get(artist, 0.0) + weight
 
     def observe(self, track, weight: float = 0.5) -> None:
-        """Update genre + artist taste from a listened/saved track."""
+        """Update genre + artist + audio-feature taste from a listened/saved track."""
         self.learn(getattr(track, "genre", ""), weight)
         self.learn_artist(getattr(track, "artist", ""), weight)
+        for k in ("energy", "valence", "tempo"):
+            v = getattr(track, k, None)
+            if v is not None:
+                self.feat_sum[k] = self.feat_sum.get(k, 0.0) + v * weight
+        self.feat_n += weight
+
+    def taste_vector(self) -> dict:
+        """Averaged audio-feature profile of what the user has listened to."""
+        if not self.feat_n:
+            return {}
+        return {k: round(s / self.feat_n, 3) for k, s in self.feat_sum.items()}
 
     def top_genres(self, k: int = 3) -> list[str]:
         return [g for g, _ in sorted(self.taste.items(), key=lambda x: -x[1])[:k]]
